@@ -6,7 +6,33 @@ import {POKEMONS} from "./constants";
 import PokemonCard from "./PokemonCard";
 
 function App() {
-  const [cart, setCart] = useState<Pokemon[]>([]);
+  const [cart, setCart] = useState<Pokemon[]>(() =>
+    JSON.parse(localStorage.getItem("cart") || "[]"),
+  );
+
+  const handleAdd = (pokemon: Pokemon) => {
+    const newList = [...cart, pokemon];
+
+    localStorage.setItem("cart", JSON.stringify(newList));
+    setCart(newList);
+  };
+
+  const handleRemove = (id: string) => {
+    const cleanList = cart.filter((pokemon) => pokemon.id !== id);
+    const listFiltered = cart.filter((pokemon) => pokemon.id === id);
+
+    if (listFiltered.length > 1) {
+      const newList = [...cleanList, ...listFiltered.slice(1)];
+
+      localStorage.setItem("cart", JSON.stringify(newList));
+      setCart(newList);
+    } else {
+      localStorage.setItem("cart", JSON.stringify(cleanList));
+      setCart(cleanList);
+    }
+  };
+
+  const countInCart = (id: string) => cart.filter((pokemon) => pokemon.id === id).length;
 
   return (
     <>
@@ -17,13 +43,15 @@ function App() {
         {POKEMONS.map((pokemon) => (
           <PokemonCard
             key={pokemon.id}
+            count={countInCart}
             pokemon={pokemon}
-            onAdd={() => setCart(cart.concat(pokemon))}
+            onAdd={handleAdd}
+            onRemove={handleRemove}
           />
         ))}
       </section>
       <aside>
-        <button className="nes-btn is-primary">0 items (total $0)</button>
+        <button className="nes-btn is-primary">{cart.length} items</button>
       </aside>
     </>
   );
